@@ -8,7 +8,8 @@ namespace FitnessClub.Domain.Data;
 /// </summary>
 public static class DataSeed
 {
-    private static readonly DateOnly _currentDay = DateOnly.FromDateTime(DateTime.Today);
+    private static readonly DateTime _anchorTime = DateTime.Today;
+    private static readonly DateOnly _currentDay = DateOnly.FromDateTime(_anchorTime);
 
     /// <summary>
     /// Специализации тренеров
@@ -43,7 +44,7 @@ public static class DataSeed
             DateOfBirth = new DateOnly(2002, 3, 14),
             PhoneNumber = "+79161112233",
             MembershipStartDate = _currentDay.AddMonths(-10),
-            MembershipEndDate = _currentDay.AddMonths(-1) 
+            MembershipEndDate = _currentDay.AddMonths(-1)
         },
         new Member
         {
@@ -56,7 +57,7 @@ public static class DataSeed
             DateOfBirth = new DateOnly(2001, 7, 22),
             PhoneNumber = "+79162223344",
             MembershipStartDate = _currentDay.AddMonths(-6),
-            MembershipEndDate = _currentDay.AddDays(-12) 
+            MembershipEndDate = _currentDay.AddDays(-12)
         },
         new Member
         {
@@ -69,7 +70,7 @@ public static class DataSeed
             DateOfBirth = new DateOnly(2005, 9, 24),
             PhoneNumber = "+79163334455",
             MembershipStartDate = _currentDay.AddMonths(-3),
-            MembershipEndDate = _currentDay.AddDays(-2) 
+            MembershipEndDate = _currentDay.AddDays(-2)
         },
         new Member
         {
@@ -224,7 +225,7 @@ public static class DataSeed
             LastName = "Моуриньо",
             FirstName = "Жозе",
             Patronymic = "Глебович",
-            Gender = Gender.Female,
+            Gender = Gender.Male,
             DateOfBirth = new DateOnly(1991, 8, 19),
             Specialization = Specializations[4],
             WorkExperienceYears = 2
@@ -314,12 +315,11 @@ public static class DataSeed
 
         new() { Id = 13, Member = Members[2], Trainer = Trainers[7], DateTime = CreateDate(0, 22, 11), HallName = "Зал B", IsTrial = false },
         new() { Id = 14, Member = Members[3], Trainer = Trainers[7], DateTime = CreateDate(1, 5, 15), HallName = "Зал A", IsTrial = false }
-
     ];
 
     private static DateTime CreateDate(int monthOffset, int day, int hour)
     {
-        var targetMonth = DateTime.Today.AddMonths(monthOffset);
+        var targetMonth = _anchorTime.AddMonths(monthOffset);
         return new DateTime(targetMonth.Year, targetMonth.Month, day, hour, 0, 0);
     }
 }

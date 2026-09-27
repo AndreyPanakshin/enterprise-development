@@ -28,7 +28,7 @@ public abstract class Person
     public required string FirstName { get; set; }
 
     /// <summary>
-    /// Отчество 
+    /// Отчество (при наличии)
     /// </summary>
     public string? Patronymic { get; set; }
 

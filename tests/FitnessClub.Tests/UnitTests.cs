@@ -1,16 +1,14 @@
 ﻿using FitnessClub.Domain.Data;
-using FitnessClub.Domain.Entities;
-using Xunit;
 
 namespace FitnessClub.Tests;
 
 /// <summary>
 /// Юнит-тесты для проверки LINQ запросов фитнес-клуба
 /// </summary>
-public class FitnessClubTests
+public class UnitTests
 {
     /// <summary>
-    ///  Тест вывода информации о тренерах, стаж работы которых не менее 5 лет
+    /// 1. Тест вывода информации о тренерах, стаж работы которых не менее 5 лет
     /// </summary>
     [Fact]
     public void GetTrainers_WorkExperienceFiveYearsOrMore_ReturnsCorrectTrainerIds()
@@ -32,10 +30,14 @@ public class FitnessClubTests
     public void CheckHallAvailability_OccupiedTimeSlot_ReturnsFalse()
     {
         var targetHall = "Зал A";
-        var targetTime = DataSeed.TrainingSession[0].DateTime; 
+
+        var existingSession = DataSeed.TrainingSession[0];
+        
+        var requestStart = existingSession.DateTime.AddMinutes(30);
+        var requestEnd = requestStart.AddHours(1);
 
         var isAvailable = !DataSeed.TrainingSession
-            .Any(session => session.HallName == targetHall && session.DateTime == targetTime);
+            .Any(session => session.HallName == targetHall && session.DateTime < requestEnd && session.DateTime.Add(session.Duration) > requestStart);
 
         Assert.False(isAvailable);
     }
@@ -50,7 +52,7 @@ public class FitnessClubTests
         var expectedClientIds = new[] { 1, 2, 3 }; 
 
         var actualClientIds = DataSeed.Members
-            .Where(client => client.MembershipEndDate < currentDate)
+            .Where(client => client.IsMembershipExpired(currentDate))
             .OrderBy(client => client.LastName)
             .ThenBy(client => client.FirstName)
             .ThenBy(client => client.Patronymic)
@@ -85,7 +87,7 @@ public class FitnessClubTests
     /// 5. Вывод топ-5 самых популярных тренеров по количеству проведённых занятий.
     /// </summary>
     [Fact]
-    public void GetTopFivePopularTrainers_ReturnsCorrectRankedTrainerIds()
+    public void GetTopTrainers_FiveRequested_ReturnsRankedTrainerIds()
     {
         var expectedTopTrainerIds = new[] { 3, 1, 4, 6, 8 }; 
 
