@@ -1,0 +1,27 @@
+name: Run tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore FitnessClub.slnx
+
+      - name: Build project
+        run: dotnet build FitnessClub.slnx --no-restore
+
+      - name: Run tests
+        run: dotnet test FitnessClub.slnx --no-restore --configuration Release
