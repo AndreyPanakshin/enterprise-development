@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FitnessClub.Api/FitnessClub.Api.csproj" />
+    <Project Path="src/FitnessClub.Application.Contracts/FitnessClub.Application.Contracts.csproj" />
+    <Project Path="src/FitnessClub.Application/FitnessClub.Application.csproj" />
+    <Project Path="src/FitnessClub.Domain/FitnessClub.Domain.csproj" />
+    <Project Path="src/FitnessClub.Repositories/FitnessClub.Repositories.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FitnessClub.Tests/FitnessClub.Tests.csproj" />
+  </Folder>
+</Solution>
