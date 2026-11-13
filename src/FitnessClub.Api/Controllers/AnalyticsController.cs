@@ -1,5 +1,5 @@
 using FitnessClub.Application.Contracts;
-using FitnessClub.Application.Contracts.Clients;
+using FitnessClub.Application.Contracts.Members;
 using FitnessClub.Application.Contracts.PersonalTrainingSessions;
 using FitnessClub.Application.Contracts.Trainers;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitnessClub.Api.Controllers;
 
 /// <summary>
-/// Контроллер для аналитических выборок и бизнес-отчетов
+/// Контроллер для получения аналитических выборок и бизнес-отчетов
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -16,6 +16,9 @@ public class AnalyticsController(
     ILogger<AnalyticsController> logger)
     : ControllerBase
 {
+    /// <summary>
+    /// Возвращает список тренеров со стажем работы 5 лет и более
+    /// </summary>
     [HttpGet("experienced-trainers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -34,6 +37,9 @@ public class AnalyticsController(
         }
     }
 
+    /// <summary>
+    /// Проверяет доступность указанного зала на заданное время
+    /// </summary>
     [HttpGet("hall-availability")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -60,10 +66,13 @@ public class AnalyticsController(
         }
     }
 
+    /// <summary>
+    /// Возвращает список клиентов с просроченными абонементами
+    /// </summary>
     [HttpGet("expired-subscriptions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<ClientDto>> GetExpiredMemberships()
+    public ActionResult<IList<MemberDto>> GetExpiredMemberships()
     {
         try
         {
@@ -78,6 +87,9 @@ public class AnalyticsController(
         }
     }
 
+    /// <summary>
+    /// Возвращает список персональных тренировок в указанном зале за текущий месяц
+    /// </summary>
     [HttpGet("current-month-sessions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -98,6 +110,9 @@ public class AnalyticsController(
         }
     }
 
+    /// <summary>
+    /// Возвращает список из 5 самых популярных тренеров
+    /// </summary>
     [HttpGet("top-trainers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -105,7 +120,7 @@ public class AnalyticsController(
     {
         try
         {
-            logger.LogInformation("Запрос тоП-5 популярных тренеров");
+            logger.LogInformation("Запрос топ-5 популярных тренеров");
             var topTrainers = analyticsSvc.GetTopFivePopularTrainers();
             return Ok(topTrainers);
         }

@@ -1,4 +1,4 @@
-using FitnessClub.Application.Contracts.Clients;
+using FitnessClub.Application.Contracts.Members;
 using FitnessClub.Application.Contracts.PersonalTrainingSessions;
 using FitnessClub.Domain.Repositories;
 using FitnessClub.Domain.Entities;
@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 namespace FitnessClub.Application.Services;
 
 /// <summary>
-/// Реализация сервиса управления клиентами клуба
+/// Реализация сервиса управления клиентами (Member) клуба
 /// </summary>
-public class ClientService(
-    IRepository<Member, int> clientRepo,
+public class MemberService(
+    IRepository<Member, int> memberRepo,
     IRepository<TrainingSession, int> sessionRepo,
-    ILogger<ClientService> logger) : IClientService
+    ILogger<MemberService> logger) : IMemberService
 {
-    public ClientDto Create(ClientCreateUpdateDto dto)
+    public MemberDto Create(MemberCreateUpdateDto dto)
     {
         logger.LogInformation("Запуск создания нового клиента");
         if (dto.StartSub >= dto.EndSub)
@@ -36,16 +36,15 @@ public class ClientService(
             MembershipEndDate = dto.EndSub
         };
 
-        clientRepo.Add(entity);
+        memberRepo.Add(entity);
         logger.LogInformation("Клиент успешно добавлен с ID: {Id}", entity.Id);
-
         return MapToDto(entity);
     }
 
-    public ClientDto? Get(int id)
+    public MemberDto? Get(int id)
     {
         logger.LogInformation("Поиск клиента по ID: {Id}", id);
-        var target = clientRepo.Get(id);
+        var target = memberRepo.Get(id);
         if (target is null)
         {
             logger.LogWarning("Клиент с ID {Id} не найден в базе", id);
@@ -54,19 +53,17 @@ public class ClientService(
         return MapToDto(target);
     }
 
-    public IList<ClientDto> GetAll()
+    public IList<MemberDto> GetAll()
     {
         logger.LogInformation("Выгрузка полного списка клиентов");
-        return clientRepo.GetAll()
-            .Select(MapToDto)
-            .ToList();
+        return memberRepo.GetAll().Select(MapToDto).ToList();
     }
 
-    public ClientDto Update(ClientCreateUpdateDto dto, int id)
+    public MemberDto Update(MemberCreateUpdateDto dto, int id)
     {
         logger.LogInformation("Обновление данных клиента с ID: {Id}", id);
-        var target = clientRepo.Get(id) ?? throw new KeyNotFoundException($"Клиент с ID {id} не обнаружен.");
-
+        var target = memberRepo.Get(id) ?? throw new KeyNotFoundException($"Клиент с ID {id} не обнаружен.");
+        
         if (dto.StartSub >= dto.EndSub)
         {
             throw new ArgumentException("Неверные даты абонемента при обновлении.");
@@ -82,16 +79,15 @@ public class ClientService(
         target.MembershipStartDate = dto.StartSub;
         target.MembershipEndDate = dto.EndSub;
 
-        clientRepo.Update(target);
+        memberRepo.Update(target);
         logger.LogInformation("Данные клиента #{Id} обновлены", id);
-
         return MapToDto(target);
     }
 
     public bool Delete(int id)
     {
         logger.LogInformation("Попытка удаления клиента с ID: {Id}", id);
-        var target = clientRepo.Get(id);
+        var target = memberRepo.Get(id);
         if (target is null) return false;
 
         var hasSessions = sessionRepo.GetAll().Any(s => s.Member.Id == id);
@@ -101,24 +97,33 @@ public class ClientService(
             return false;
         }
 
-        return clientRepo.Delete(id);
+        return memberRepo.Delete(id);
     }
 
-   public IReadOnlyList<PersonalTrainingSessionDto> GetPersonalTrainingSessions(int clientId)
-{
-    return sessionRepo.GetAll()
-        .Where(s => s.Member.Id == clientId)
-        .Select(s => new PersonalTrainingSessionDto(
-            s.Id,
-            s.Member.Id,
-            s.Trainer.Id,
-            s.DateTime,
-            s.HallName,
-            s.IsTrial))
-        .ToList();
-}
+    public IReadOnlyList<PersonalTrainingSessionDto> GetPersonalTrainingSessions(int memberId)
+    {
+        logger.LogInformation("Выгрузка тренировок для клиента #{Id}", memberId);
+        return sessionRepo.GetAll()
+            .Where(s => s.Member.Id == memberId)
+            .Select(s => new PersonalTrainingSessionDto(
+                s.Id,
+                s.Member.Id,
+                s.Trainer.Id,
+                s.DateTime,
+                s.HallName,
+                s.IsTrial))
+            .ToList();
+    }
 
-    private static ClientDto MapToDto(Member c) => new(
-        c.Id, c.PassportNumber, c.LastName, c.FirstName, c.Patronymic,
-        c.Gender, c.DateOfBirth, c.PhoneNumber, c.MembershipStartDate, c.MembershipEndDate);
+    private static MemberDto MapToDto(Member member) => new(
+        member.Id, 
+        member.PassportNumber, 
+        member.LastName, 
+        member.FirstName, 
+        member.Patronymic,
+        member.Gender, 
+        member.DateOfBirth, 
+        member.PhoneNumber, 
+        member.MembershipStartDate, 
+        member.MembershipEndDate);
 }

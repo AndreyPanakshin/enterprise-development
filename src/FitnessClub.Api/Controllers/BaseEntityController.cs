@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitnessClub.Api.Controllers;
 
+/// <summary>
+/// Базовый контроллер для выполнения стандартных CRUD-операций над сущностями
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
@@ -13,6 +16,9 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
     where TDataDto : class
     where TIdentifier : struct
 {
+    /// <summary>
+    /// Получает список всех записей данной сущности
+    /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -31,6 +37,9 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
         }
     }
 
+    /// <summary>
+    /// Получает запись сущности по её уникальному идентификатору
+    /// </summary>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -55,6 +64,9 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
         }
     }
 
+    /// <summary>
+    /// Создает новую запись сущности на основе переданных данных
+    /// </summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -85,6 +97,9 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
         }
     }
 
+    /// <summary>
+    /// Обновляет существующую запись сущности по идентификатору
+    /// </summary>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -115,6 +130,9 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
         }
     }
 
+    /// <summary>
+    /// Удаляет запись сущности по идентификатору
+    /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -125,18 +143,14 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
         try
         {
             loggerInstance.LogInformation("Удаление записи {ModelName} с идентификатором {Id}", typeof(TModel).Name, id);
-            var candidate = appService.Get(id);
-            if (candidate is null)
-            {
-                loggerInstance.LogWarning("Запись {ModelName} с ID {Id} не найдена для удаления", typeof(TModel).Name, id);
-                return NotFound();
-            }
+            
             var success = appService.Delete(id);
             if (!success)
             {
-                loggerInstance.LogWarning("Невозможно удалить запись {ModelName} с ID {Id} из-за конфликта", typeof(TModel).Name, id);
+                loggerInstance.LogWarning("Невозможно удалить запись {ModelName} с ID {Id}", typeof(TModel).Name, id);
                 return Conflict();
             }
+            
             return NoContent();
         }
         catch (Exception ex)

@@ -1,12 +1,18 @@
 namespace FitnessClub.Application.Contracts.PersonalTrainingSessions;
 
 /// <summary>
-/// Уникальный DTO персонального занятия
+/// Информация о персональной тренировке для отображения
 /// </summary>
+/// <param name="Id">Уникальный идентификатор тренировки</param>
+/// <param name="ClientId">Идентификатор клиента</param>
+/// <param name="TrainerId">Идентификатор тренера</param>
+/// <param name="SessionDateTime">Дата и время проведения тренировки</param>
+/// <param name="HallName">Название зала</param>
+/// <param name="IsTrial">Признак пробной тренировки</param>
 public record PersonalTrainingSessionDto(
     int Id,
     int ClientId,
     int TrainerId,
-    DateTime SessionDateTime,  // Изменено название для уникальности
+    DateTime SessionDateTime,
     string HallName,
     bool IsTrial);

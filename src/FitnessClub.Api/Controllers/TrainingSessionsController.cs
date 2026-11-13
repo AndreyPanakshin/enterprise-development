@@ -7,12 +7,14 @@ namespace FitnessClub.Api.Controllers;
 /// <summary>
 /// Контроллер для персональных тренировок
 /// </summary>
-public class PersonalTrainingSessionsController(
+/// <param name="sessionSvc">Сервис для выполнения операций с тренировками</param>
+/// <param name="logger">Логгер контроллера</param>
+public class TrainingSessionsController(
     IApplicationService<
         PersonalTrainingSessionDto,
         PersonalTrainingSessionCreateUpdateDto,
         int> sessionSvc,
-    ILogger<PersonalTrainingSessionsController> logger)
+    ILogger<TrainingSessionsController> logger)
     : BaseEntityController<
         PersonalTrainingSessionDto,
         PersonalTrainingSessionCreateUpdateDto,

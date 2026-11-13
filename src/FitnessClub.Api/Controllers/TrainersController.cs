@@ -5,13 +5,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitnessClub.Api.Controllers;
 
 /// <summary>
-/// Контроллер управления тренерами клуба
+/// Контроллер для управления тренерами клуба
 /// </summary>
 public class TrainersController(
     ITrainerService trainerSvc,
     ILogger<TrainersController> logger)
     : BaseEntityController<TrainerDto, TrainerCreateUpdateDto, int>(trainerSvc, logger)
 {
+    /// <summary>
+    /// Возвращает список персональных тренировок конкретного тренера
+    /// </summary>
     [HttpGet("{id}/sessions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

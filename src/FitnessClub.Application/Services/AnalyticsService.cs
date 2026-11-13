@@ -1,5 +1,5 @@
 using FitnessClub.Application.Contracts;
-using FitnessClub.Application.Contracts.Clients;
+using FitnessClub.Application.Contracts.Members;
 using FitnessClub.Application.Contracts.Trainers;
 using FitnessClub.Application.Contracts.PersonalTrainingSessions;
 using FitnessClub.Domain.Entities;
@@ -13,7 +13,7 @@ namespace FitnessClub.Application.Services;
 /// </summary>
 public class AnalyticsService(
     IRepository<Trainer, int> trainerRepo,
-    IRepository<Member, int> clientRepo,
+    IRepository<Member, int> memberRepo,
     IRepository<TrainingSession, int> sessionRepo,
     ILogger<AnalyticsService> logger) : IAnalyticsService
 {
@@ -32,27 +32,19 @@ public class AnalyticsService(
     {
         logger.LogInformation("Аналитика: проверка доступности зала '{Hall}' на время {Time}", hallName, checkTime);
         var allSessions = sessionRepo.GetAll();
-        
-        if (!allSessions.Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase)))
-        {
-            throw new ArgumentException($"Зал '{hallName}' не зарегистрирован в системе.");
-        }
-
-        var isFree = !allSessions.Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) && s.DateTime == checkTime);
-        return isFree;
+        return !allSessions.Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) && s.DateTime == checkTime);
     }
 
-    public IList<ClientDto> GetClientsWithExpiredSubscription()
+    public IList<MemberDto> GetClientsWithExpiredSubscription()
     {
         logger.LogInformation("Аналитика: выгрузка просроченных абонементов");
         var currentDate = DateOnly.FromDateTime(DateTime.Today);
-
-        return clientRepo.GetAll()
-            .Where(c => c.MembershipEndDate < currentDate)
+        return memberRepo.GetAll()
+            .Where(c => c.IsMembershipExpired(currentDate))
             .OrderBy(c => c.LastName)
             .ThenBy(c => c.FirstName)
             .ThenBy(c => c.Patronymic)
-            .Select(c => new ClientDto(
+            .Select(c => new MemberDto(
                 c.Id, c.PassportNumber, c.LastName, c.FirstName, c.Patronymic,
                 c.Gender, c.DateOfBirth, c.PhoneNumber, c.MembershipStartDate, c.MembershipEndDate))
             .ToList();
@@ -62,7 +54,6 @@ public class AnalyticsService(
     {
         logger.LogInformation("Аналитика: занятия текущего месяца в зале '{Hall}'", hallName);
         var now = DateTime.Today;
-
         return sessionRepo.GetAll()
             .Where(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) &&
                         s.DateTime.Year == now.Year &&
@@ -74,14 +65,14 @@ public class AnalyticsService(
 
     public IList<TrainerDto> GetTopFivePopularTrainers()
     {
-        logger.LogInformation("Аналитика: расчет ТОП-5 популярных тренеров");
+        logger.LogInformation("Аналитика: расчет топ-5 популярных тренеров");
         var topIds = sessionRepo.GetAll()
             .GroupBy(s => s.Trainer.Id)
             .OrderByDescending(g => g.Count())
             .Take(5)
             .Select(g => g.Key)
             .ToList();
-
+            
         var cacheTrainers = trainerRepo.GetAll();
         return topIds
             .Select(id => cacheTrainers.First(t => t.Id == id))

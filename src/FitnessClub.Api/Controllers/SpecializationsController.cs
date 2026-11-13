@@ -5,13 +5,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitnessClub.Api.Controllers;
 
 /// <summary>
-/// Контроллер для работы со специализациями
+/// Контроллер для работы со специализациями тренеров
 /// </summary>
 public class SpecializationsController(
     ISpecializationService specSvc,
     ILogger<SpecializationsController> logger)
     : BaseEntityController<SpecializationDto, SpecializationCreateUpdateDto, int>(specSvc, logger)
 {
+    /// <summary>
+    /// Возвращает список тренеров, имеющих указанную специализацию
+    /// </summary>
     [HttpGet("{id}/trainers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
