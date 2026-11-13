@@ -48,7 +48,7 @@ public class AnalyticsService(
         var currentDate = DateOnly.FromDateTime(DateTime.Today);
 
         return clientRepo.GetAll()
-            .Where(c => c.MembershipStartDate < currentDate)
+            .Where(c => c.MembershipEndDate < currentDate)
             .OrderBy(c => c.LastName)
             .ThenBy(c => c.FirstName)
             .ThenBy(c => c.Patronymic)
