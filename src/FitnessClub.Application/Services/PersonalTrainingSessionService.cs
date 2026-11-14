@@ -19,7 +19,7 @@ public class PersonalTrainingSessionService(
     public PersonalTrainingSessionDto Create(PersonalTrainingSessionCreateUpdateDto dto)
     {
         logger.LogInformation("Запись клиента на персональное занятие");
-        var client = clientRepo.Get(dto.ClientId) ?? throw new KeyNotFoundException($"Клиент #{dto.ClientId} не найден.");
+        var client = clientRepo.Get(dto.MemberId) ?? throw new KeyNotFoundException($"Клиент #{dto.MemberId} не найден.");
         var trainer = trainerRepo.Get(dto.TrainerId) ?? throw new KeyNotFoundException($"Тренер #{dto.TrainerId} не найден.");
 
         var entity = new TrainingSession
@@ -53,7 +53,7 @@ public class PersonalTrainingSessionService(
     {
         logger.LogInformation("Изменение параметров тренировки ID: {Id}", id);
         var session = sessionRepo.Get(id) ?? throw new KeyNotFoundException($"Тренировка #{id} не найдена.");
-        var client = clientRepo.Get(dto.ClientId) ?? throw new KeyNotFoundException($"Клиент #{dto.ClientId} не найден.");
+        var client = clientRepo.Get(dto.MemberId) ?? throw new KeyNotFoundException($"Клиент #{dto.MemberId} не найден.");
         var trainer = trainerRepo.Get(dto.TrainerId) ?? throw new KeyNotFoundException($"Тренер #{dto.TrainerId} не найден.");
 
         session.Member = client;

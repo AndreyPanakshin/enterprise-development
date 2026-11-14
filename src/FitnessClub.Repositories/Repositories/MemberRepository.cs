@@ -7,11 +7,11 @@ namespace FitnessClub.Repositories.Repositories;
 /// <summary>
 /// In-Memory хранилище для клиентов
 /// </summary>
-public class ClientRepository : IRepository<Member, int>
+public class MemberRepository : IRepository<Member, int>
 {
     private readonly List<Member> _members;
 
-    public ClientRepository(DataSeed data) => _members = data.Members;
+    public MemberRepository(DataSeed data) => _members = data.Members;
 
     public Member? Get(int id) => _members.SingleOrDefault(m => m.Id == id);
 

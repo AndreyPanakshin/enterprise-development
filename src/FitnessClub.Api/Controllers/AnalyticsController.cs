@@ -77,7 +77,7 @@ public class AnalyticsController(
         try
         {
             logger.LogInformation("Запрос списка клиентов с просроченными абонементами");
-            var data = analyticsSvc.GetClientsWithExpiredSubscription();
+            var data = analyticsSvc.GetMembersWithExpiredSubscription();
             return Ok(data);
         }
         catch (Exception ex)
@@ -102,6 +102,11 @@ public class AnalyticsController(
             logger.LogInformation("Выгрузка занятий текущего месяца для зала '{Hall}'", hallName);
             var sessions = analyticsSvc.GetSessionsForCurrentMonthInSelectedHall(hallName);
             return Ok(sessions);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogWarning(ex, "Некорректные параметры для выгрузки занятий зала");
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {

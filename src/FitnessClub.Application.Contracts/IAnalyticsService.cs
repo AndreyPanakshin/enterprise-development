@@ -16,7 +16,7 @@ public interface IAnalyticsService
     public bool CheckHallAvailability(string hallName, DateTime checkTime);
 
     /// <summary>Возвращает клиентов с просроченными абонементами</summary>
-    public IList<MemberDto> GetClientsWithExpiredSubscription();
+    public IList<MemberDto> GetMembersWithExpiredSubscription();
 
     /// <summary>Возвращает тренировки в указанном зале за текущий месяц</summary>
     public IList<PersonalTrainingSessionDto> GetSessionsForCurrentMonthInSelectedHall(string hallName);
