@@ -7,9 +7,18 @@ public interface IRepository<TEntity, TKey>
     where TEntity : class
     where TKey : struct
 {
-    TEntity? Get(TKey id);
-    IReadOnlyList<TEntity> GetAll();
-    void Add(TEntity entity);
-    void Update(TEntity entity);
-    bool Delete(TKey id);
+    /// <summary>Получает сущность по идентификатору</summary>
+    public Task<TEntity?> Get(TKey id);
+
+    /// <summary>Получает все сущности</summary>
+    public Task<IReadOnlyList<TEntity>> GetAll();
+
+    /// <summary>Добавляет сущность</summary>
+    public Task Add(TEntity entity);
+
+    /// <summary>Обновляет сущность</summary>
+    public Task Update(TEntity entity);
+
+    /// <summary>Удаляет сущность по идентификатору</summary>
+    public Task<bool> Delete(TKey id);
 }

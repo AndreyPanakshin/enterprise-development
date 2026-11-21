@@ -22,12 +22,12 @@ public class AnalyticsController(
     [HttpGet("experienced-trainers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<TrainerDto>> GetExperiencedTrainers()
+    public async Task<ActionResult<IList<TrainerDto>>> GetExperiencedTrainers()
     {
         try
         {
             logger.LogInformation("Запрос отчета: тренеры со стажем от 5 лет");
-            var result = analyticsSvc.GetTrainersWithFiveOrMoreYearsOfExperience();
+            var result = await analyticsSvc.GetTrainersWithFiveOrMoreYearsOfExperience();
             return Ok(result);
         }
         catch (Exception ex)
@@ -44,14 +44,14 @@ public class AnalyticsController(
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<bool> VerifyHallAvailability(
+    public async Task<ActionResult<bool>> VerifyHallAvailability(
         [FromQuery] string hallName,
         [FromQuery] DateTime checkTime)
     {
         try
         {
             logger.LogInformation("Проверка занятости зала '{Hall}' на время {Time}", hallName, checkTime);
-            var available = analyticsSvc.CheckHallAvailability(hallName, checkTime);
+            var available = await analyticsSvc.CheckHallAvailability(hallName, checkTime);
             return Ok(available);
         }
         catch (ArgumentException ex)
@@ -72,12 +72,12 @@ public class AnalyticsController(
     [HttpGet("expired-subscriptions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<MemberDto>> GetExpiredMemberships()
+    public async Task<ActionResult<IList<MemberDto>>> GetExpiredMemberships()
     {
         try
         {
             logger.LogInformation("Запрос списка клиентов с просроченными абонементами");
-            var data = analyticsSvc.GetMembersWithExpiredSubscription();
+            var data = await analyticsSvc.GetMembersWithExpiredSubscription();
             return Ok(data);
         }
         catch (Exception ex)
@@ -94,13 +94,13 @@ public class AnalyticsController(
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<PersonalTrainingSessionDto>> GetCurrentMonthHallSessions(
+    public async Task<ActionResult<IList<PersonalTrainingSessionDto>>> GetCurrentMonthHallSessions(
         [FromQuery] string hallName)
     {
         try
         {
             logger.LogInformation("Выгрузка занятий текущего месяца для зала '{Hall}'", hallName);
-            var sessions = analyticsSvc.GetSessionsForCurrentMonthInSelectedHall(hallName);
+            var sessions = await analyticsSvc.GetSessionsForCurrentMonthInSelectedHall(hallName);
             return Ok(sessions);
         }
         catch (ArgumentException ex)
@@ -121,12 +121,12 @@ public class AnalyticsController(
     [HttpGet("top-trainers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<TrainerDto>> GetTopTrainersList()
+    public async Task<ActionResult<IList<TrainerDto>>> GetTopTrainersList()
     {
         try
         {
             logger.LogInformation("Запрос топ-5 популярных тренеров");
-            var topTrainers = analyticsSvc.GetTopFivePopularTrainers();
+            var topTrainers = await analyticsSvc.GetTopFivePopularTrainers();
             return Ok(topTrainers);
         }
         catch (Exception ex)

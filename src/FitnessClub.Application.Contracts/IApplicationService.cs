@@ -9,17 +9,17 @@ public interface IApplicationService<TModel, TPayload, TKey>
     where TKey : struct
 {
     /// <summary>Получает список всех записей</summary>
-    public IList<TModel> GetAll();
+    public Task<IList<TModel>> GetAll();
 
     /// <summary>Получает запись по уникальному идентификатору</summary>
-    public TModel? Get(TKey id);
+    public Task<TModel?> Get(TKey id);
 
     /// <summary>Создает новую запись</summary>
-    public TModel Create(TPayload payload);
+    public Task<TModel> Create(TPayload payload);
 
     /// <summary>Обновляет существующую запись по идентификатору</summary>
-    public TModel Update(TPayload payload, TKey id);
+    public Task<TModel> Update(TPayload payload, TKey id);
 
     /// <summary>Удаляет запись по идентификатору. Возвращает true при успехе</summary>
-    public bool Delete(TKey id);
+    public Task<bool> Delete(TKey id);
 }

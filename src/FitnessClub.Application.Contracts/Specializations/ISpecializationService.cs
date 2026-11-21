@@ -12,5 +12,5 @@ public interface ISpecializationService : IApplicationService<SpecializationDto,
     /// </summary>
     /// <param name="id">Идентификатор специализации</param>
     /// <returns>Список тренеров</returns>
-    public IList<TrainerDto> GetTrainers(int id);
+    public Task<IList<TrainerDto>> GetTrainers(int id);
 }

@@ -19,12 +19,12 @@ public class SpecializationsController(
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<TrainerDto>> GetTrainersBySpecialization(int id)
+    public async Task<ActionResult<IList<TrainerDto>>> GetTrainersBySpecialization(int id)
     {
         try
         {
             logger.LogInformation("Получение пула тренеров для специализации #{Id}", id);
-            var list = specSvc.GetTrainers(id);
+            var list = await specSvc.GetTrainers(id);
             return Ok(list);
         }
         catch (KeyNotFoundException ex)

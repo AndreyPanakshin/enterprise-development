@@ -12,5 +12,5 @@ public interface IMemberService : IApplicationService<MemberDto, MemberCreateUpd
     /// </summary>
     /// <param name="memberId">Идентификатор клиента</param>
     /// <returns>Список тренировок</returns>
-    public IReadOnlyList<PersonalTrainingSessionDto> GetPersonalTrainingSessions(int memberId);
+    public Task<IReadOnlyList<PersonalTrainingSessionDto>> GetPersonalTrainingSessions(int memberId);
 }

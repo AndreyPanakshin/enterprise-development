@@ -7,44 +7,98 @@ namespace FitnessClub.Repositories.Repositories;
 /// <summary>
 /// In-Memory хранилище для персональных тренировок
 /// </summary>
-public class TrainingSessionRepository : IRepository<TrainingSession, int>
+public class TrainingSessionRepository : ITrainingSessionRepository
 {
     private readonly List<TrainingSession> _sessions;
 
-    public TrainingSessionRepository(DataSeed data)
-    {
-        _sessions = data.TrainingSessions;
-    }
+    public TrainingSessionRepository(DataSeed data) => _sessions = data.TrainingSessions;
 
-    public TrainingSession? Get(int id)
-    {
-        return _sessions.SingleOrDefault(p => p.Id == id);
-    }
+    /// <summary>Получает тренировку по идентификатору</summary>
+    public Task<TrainingSession?> Get(int id) => Task.FromResult(_sessions.SingleOrDefault(s => s.Id == id));
 
-    public IReadOnlyList<TrainingSession> GetAll()
-    {
-        return _sessions;
-    }
+    /// <summary>Получает все тренировки</summary>
+    public Task<IReadOnlyList<TrainingSession>> GetAll() => Task.FromResult<IReadOnlyList<TrainingSession>>(_sessions);
 
-    public void Add(TrainingSession entity)
+    /// <summary>Добавляет тренировку</summary>
+    public Task Add(TrainingSession entity)
     {
-        entity.Id = _sessions.Count == 0 ? 1 : _sessions.Max(item => item.Id) + 1;
+        entity.Id = _sessions.Count == 0 ? 1 : _sessions.Max(s => s.Id) + 1;
         _sessions.Add(entity);
+        return Task.CompletedTask;
     }
 
-    public void Update(TrainingSession entity)
+    /// <summary>Обновляет тренировку</summary>
+    public Task Update(TrainingSession entity)
     {
-        var idx = _sessions.FindIndex(p => p.Id == entity.Id);
+        var idx = _sessions.FindIndex(s => s.Id == entity.Id);
         if (idx == -1)
-        {
             throw new KeyNotFoundException($"Персональная тренировка с идентификатором {entity.Id} не найдена.");
-        }
         _sessions[idx] = entity;
+        return Task.CompletedTask;
     }
 
-    public bool Delete(int id)
+    /// <summary>Удаляет тренировку</summary>
+    public async Task<bool> Delete(int id)
     {
-        var target = Get(id);
+        var target = await Get(id);
         return target is not null && _sessions.Remove(target);
+    }
+
+    /// <summary>Проверяет наличие тренировок у клиента</summary>
+    public async Task<bool> HasSessionsForMember(int memberId)
+    {
+        return (await GetAll()).Any(s => s.Member.Id == memberId);
+    }
+
+    /// <summary>Проверяет наличие тренировок у тренера</summary>
+    public async Task<bool> HasSessionsForTrainer(int trainerId)
+    {
+        return (await GetAll()).Any(s => s.Trainer.Id == trainerId);
+    }
+
+    /// <summary>Получает тренировки клиента</summary>
+    public async Task<IReadOnlyList<TrainingSession>> GetByMember(int memberId)
+    {
+        return (await GetAll()).Where(s => s.Member.Id == memberId).ToList();
+    }
+
+    /// <summary>Получает тренировки тренера</summary>
+    public async Task<IReadOnlyList<TrainingSession>> GetByTrainer(int trainerId)
+    {
+        return (await GetAll()).Where(s => s.Trainer.Id == trainerId).ToList();
+    }
+
+    /// <summary>Проверяет, зарегистрирован ли зал в системе</summary>
+    public async Task<bool> HallExists(string hallName)
+    {
+        return (await GetAll()).Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Проверяет занятость зала в указанное время</summary>
+    public async Task<bool> HasSessionInHall(string hallName, DateTime checkTime)
+    {
+        return (await GetAll()).Any(s =>
+            s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) && s.DateTime == checkTime);
+    }
+
+    /// <summary>Получает тренировки зала за указанный период</summary>
+    public async Task<IReadOnlyList<TrainingSession>> GetByHallAndPeriod(string hallName, DateTime start, DateTime end)
+    {
+        return (await GetAll())
+            .Where(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase)
+                        && s.DateTime >= start && s.DateTime < end)
+            .ToList();
+    }
+
+    /// <summary>Получает идентификаторы пяти самых популярных тренеров</summary>
+    public async Task<IReadOnlyList<int>> GetTopFiveTrainerIds()
+    {
+        return (await GetAll())
+            .GroupBy(s => s.Trainer.Id)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key)
+            .Take(5)
+            .Select(g => g.Key)
+            .ToList();
     }
 }

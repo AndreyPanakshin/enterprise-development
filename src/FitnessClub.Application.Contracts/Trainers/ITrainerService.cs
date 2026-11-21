@@ -12,5 +12,5 @@ public interface ITrainerService : IApplicationService<TrainerDto, TrainerCreate
     /// </summary>
     /// <param name="id">Идентификатор тренера</param>
     /// <returns>Список тренировок</returns>
-    public IList<PersonalTrainingSessionDto> GetPersonalTrainingSessions(int id);
+    public Task<IList<PersonalTrainingSessionDto>> GetPersonalTrainingSessions(int id);
 }

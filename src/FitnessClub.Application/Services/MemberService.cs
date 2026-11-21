@@ -1,27 +1,27 @@
 using FitnessClub.Application.Contracts.Members;
 using FitnessClub.Application.Contracts.PersonalTrainingSessions;
-using FitnessClub.Domain.Repositories;
 using FitnessClub.Domain.Entities;
+using FitnessClub.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace FitnessClub.Application.Services;
 
 /// <summary>
-/// Реализация сервиса управления клиентами (Member) клуба
+/// Сервис управления клиентами (Member) клуба
 /// </summary>
 public class MemberService(
-    IRepository<Member, int> memberRepo,
-    IRepository<TrainingSession, int> sessionRepo,
+    IMemberRepository memberRepo,
+    ITrainingSessionRepository sessionRepo,
     ILogger<MemberService> logger) : IMemberService
 {
-    public MemberDto Create(MemberCreateUpdateDto dto)
+    /// <summary>Создает нового клиента</summary>
+    public async Task<MemberDto> Create(MemberCreateUpdateDto dto)
     {
         logger.LogInformation("Запуск создания нового клиента");
         if (dto.StartSub >= dto.EndSub)
         {
             throw new ArgumentException("Срок действия абонемента указан некорректно: дата начала позже или равна дате окончания.");
         }
-
         var entity = new Member
         {
             Id = 0,
@@ -35,16 +35,16 @@ public class MemberService(
             MembershipStartDate = dto.StartSub,
             MembershipEndDate = dto.EndSub
         };
-
-        memberRepo.Add(entity);
+        await memberRepo.Add(entity);
         logger.LogInformation("Клиент успешно добавлен с ID: {Id}", entity.Id);
         return MapToDto(entity);
     }
 
-    public MemberDto? Get(int id)
+    /// <summary>Получает клиента по идентификатору</summary>
+    public async Task<MemberDto?> Get(int id)
     {
         logger.LogInformation("Поиск клиента по ID: {Id}", id);
-        var target = memberRepo.Get(id);
+        var target = await memberRepo.Get(id);
         if (target is null)
         {
             logger.LogWarning("Клиент с ID {Id} не найден в базе", id);
@@ -53,22 +53,24 @@ public class MemberService(
         return MapToDto(target);
     }
 
-    public IList<MemberDto> GetAll()
+    /// <summary>Получает список всех клиентов</summary>
+    public async Task<IList<MemberDto>> GetAll()
     {
         logger.LogInformation("Выгрузка полного списка клиентов");
-        return memberRepo.GetAll().Select(MapToDto).ToList();
+        var members = await memberRepo.GetAll();
+        return members.Select(MapToDto).ToList();
     }
 
-    public MemberDto Update(MemberCreateUpdateDto dto, int id)
+    /// <summary>Обновляет данные клиента</summary>
+    public async Task<MemberDto> Update(MemberCreateUpdateDto dto, int id)
     {
         logger.LogInformation("Обновление данных клиента с ID: {Id}", id);
-        var target = memberRepo.Get(id) ?? throw new KeyNotFoundException($"Клиент с ID {id} не обнаружен.");
-        
+        var target = await memberRepo.Get(id)
+            ?? throw new KeyNotFoundException($"Клиент с ID {id} не обнаружен.");
         if (dto.StartSub >= dto.EndSub)
         {
             throw new ArgumentException("Неверные даты абонемента при обновлении.");
         }
-
         target.PassportNumber = dto.PassportNumber;
         target.LastName = dto.LastName;
         target.FirstName = dto.FirstName;
@@ -78,52 +80,47 @@ public class MemberService(
         target.PhoneNumber = dto.PhoneNumber;
         target.MembershipStartDate = dto.StartSub;
         target.MembershipEndDate = dto.EndSub;
-
-        memberRepo.Update(target);
+        await memberRepo.Update(target);
         logger.LogInformation("Данные клиента #{Id} обновлены", id);
         return MapToDto(target);
     }
 
-    public bool Delete(int id)
+    /// <summary>Удаляет клиента, если у него нет тренировок</summary>
+    public async Task<bool> Delete(int id)
     {
         logger.LogInformation("Попытка удаления клиента с ID: {Id}", id);
-        var target = memberRepo.Get(id);
+        var target = await memberRepo.Get(id);
         if (target is null) return false;
-
-        var hasSessions = sessionRepo.GetAll().Any(s => s.Member.Id == id);
-        if (hasSessions)
+        if (await sessionRepo.HasSessionsForMember(id))
         {
             logger.LogWarning("Удаление клиента #{Id} заблокировано: есть привязанные тренировки", id);
             return false;
         }
-
-        return memberRepo.Delete(id);
+        return await memberRepo.Delete(id);
     }
 
-    public IReadOnlyList<PersonalTrainingSessionDto> GetPersonalTrainingSessions(int memberId)
+    /// <summary>Возвращает персональные тренировки клиента</summary>
+    public async Task<IReadOnlyList<PersonalTrainingSessionDto>> GetPersonalTrainingSessions(int memberId)
     {
         logger.LogInformation("Выгрузка тренировок для клиента #{Id}", memberId);
-        return sessionRepo.GetAll()
-            .Where(s => s.Member.Id == memberId)
+        _ = await memberRepo.Get(memberId)
+            ?? throw new KeyNotFoundException($"Клиент с ID {memberId} не обнаружен.");
+        var sessions = await sessionRepo.GetByMember(memberId);
+        return sessions
             .Select(s => new PersonalTrainingSessionDto(
-                s.Id,
-                s.Member.Id,
-                s.Trainer.Id,
-                s.DateTime,
-                s.HallName,
-                s.IsTrial))
+                s.Id, s.Member.Id, s.Trainer.Id, s.DateTime, s.HallName, s.IsTrial))
             .ToList();
     }
 
     private static MemberDto MapToDto(Member member) => new(
-        member.Id, 
-        member.PassportNumber, 
-        member.LastName, 
-        member.FirstName, 
+        member.Id,
+        member.PassportNumber,
+        member.LastName,
+        member.FirstName,
         member.Patronymic,
-        member.Gender, 
-        member.DateOfBirth, 
-        member.PhoneNumber, 
-        member.MembershipStartDate, 
+        member.Gender,
+        member.DateOfBirth,
+        member.PhoneNumber,
+        member.MembershipStartDate,
         member.MembershipEndDate);
 }

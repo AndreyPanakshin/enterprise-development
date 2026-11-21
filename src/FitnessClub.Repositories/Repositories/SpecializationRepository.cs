@@ -11,40 +11,36 @@ public class SpecializationRepository : IRepository<Specialization, int>
 {
     private readonly List<Specialization> _specializations;
 
-    public SpecializationRepository(DataSeed data)
-    {
-        _specializations = data.Specializations;
-    }
+    public SpecializationRepository(DataSeed data) => _specializations = data.Specializations;
 
-    public Specialization? Get(int id)
-    {
-        return _specializations.SingleOrDefault(s => s.Id == id);
-    }
+    /// <summary>Получает специализацию по идентификатору</summary>
+    public Task<Specialization?> Get(int id) => Task.FromResult(_specializations.SingleOrDefault(s => s.Id == id));
 
-    public IReadOnlyList<Specialization> GetAll()
-    {
-        return _specializations;
-    }
+    /// <summary>Получает все специализации</summary>
+    public Task<IReadOnlyList<Specialization>> GetAll() => Task.FromResult<IReadOnlyList<Specialization>>(_specializations);
 
-    public void Add(Specialization entity)
+    /// <summary>Добавляет специализацию</summary>
+    public Task Add(Specialization entity)
     {
-        entity.Id = _specializations.Count == 0 ? 1 : _specializations.Max(item => item.Id) + 1;
+        entity.Id = _specializations.Count == 0 ? 1 : _specializations.Max(s => s.Id) + 1;
         _specializations.Add(entity);
+        return Task.CompletedTask;
     }
 
-    public void Update(Specialization entity)
+    /// <summary>Обновляет специализацию</summary>
+    public Task Update(Specialization entity)
     {
         var idx = _specializations.FindIndex(s => s.Id == entity.Id);
         if (idx == -1)
-        {
             throw new KeyNotFoundException($"Специализация с идентификатором {entity.Id} не найдена.");
-        }
         _specializations[idx] = entity;
+        return Task.CompletedTask;
     }
 
-    public bool Delete(int id)
+    /// <summary>Удаляет специализацию</summary>
+    public async Task<bool> Delete(int id)
     {
-        var target = Get(id);
+        var target = await Get(id);
         return target is not null && _specializations.Remove(target);
     }
 }

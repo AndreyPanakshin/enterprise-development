@@ -1,8 +1,7 @@
 using FitnessClub.Application.Contracts;
 using FitnessClub.Application.Contracts.Members;
-using FitnessClub.Application.Contracts.Trainers;
 using FitnessClub.Application.Contracts.PersonalTrainingSessions;
-using FitnessClub.Domain.Entities;
+using FitnessClub.Application.Contracts.Trainers;
 using FitnessClub.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
@@ -12,17 +11,17 @@ namespace FitnessClub.Application.Services;
 /// Сервис выполнения аналитических бизнес-запросов
 /// </summary>
 public class AnalyticsService(
-    IRepository<Trainer, int> trainerRepo,
-    IRepository<Member, int> memberRepo,
-    IRepository<TrainingSession, int> sessionRepo,
+    ITrainerRepository trainerRepo,
+    IMemberRepository memberRepo,
+    ITrainingSessionRepository sessionRepo,
     ILogger<AnalyticsService> logger) : IAnalyticsService
 {
     /// <summary>Возвращает тренеров со стажем работы 5 лет и более</summary>
-    public IList<TrainerDto> GetTrainersWithFiveOrMoreYearsOfExperience()
+    public async Task<IList<TrainerDto>> GetTrainersWithFiveOrMoreYearsOfExperience()
     {
         logger.LogInformation("Аналитика: фильтрация тренеров со стажем от 5 лет");
-        return trainerRepo.GetAll()
-            .Where(t => t.WorkExperienceYears >= 5)
+        var trainers = await trainerRepo.GetWithMinExperience(5);
+        return trainers
             .Select(t => new TrainerDto(
                 t.Id, t.PassportNumber, t.LastName, t.FirstName, t.Patronymic,
                 t.Gender, t.DateOfBirth, t.Specialization.Id, t.WorkExperienceYears))
@@ -30,29 +29,23 @@ public class AnalyticsService(
     }
 
     /// <summary>Проверяет, свободен ли указанный зал в заданное время</summary>
-    public bool CheckHallAvailability(string hallName, DateTime checkTime)
+    public async Task<bool> CheckHallAvailability(string hallName, DateTime checkTime)
     {
         logger.LogInformation("Аналитика: проверка доступности зала '{Hall}' на время {Time}", hallName, checkTime);
-        var allSessions = sessionRepo.GetAll();
-
-        if (!allSessions.Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase)))
+        if (!await sessionRepo.HallExists(hallName))
         {
             throw new ArgumentException($"Зал '{hallName}' не зарегистрирован в системе.");
         }
-
-        return !allSessions.Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) && s.DateTime == checkTime);
+        return !await sessionRepo.HasSessionInHall(hallName, checkTime);
     }
 
     /// <summary>Возвращает клиентов с просроченными абонементами</summary>
-    public IList<MemberDto> GetMembersWithExpiredSubscription()
+    public async Task<IList<MemberDto>> GetMembersWithExpiredSubscription()
     {
         logger.LogInformation("Аналитика: выгрузка просроченных абонементов");
-        var currentDate = DateOnly.FromDateTime(DateTime.Today);
-        return memberRepo.GetAll()
-            .Where(c => c.IsMembershipExpired(currentDate))
-            .OrderBy(c => c.LastName)
-            .ThenBy(c => c.FirstName)
-            .ThenBy(c => c.Patronymic)
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var members = await memberRepo.GetExpiredSubscriptions(today);
+        return members
             .Select(c => new MemberDto(
                 c.Id, c.PassportNumber, c.LastName, c.FirstName, c.Patronymic,
                 c.Gender, c.DateOfBirth, c.PhoneNumber, c.MembershipStartDate, c.MembershipEndDate))
@@ -60,40 +53,31 @@ public class AnalyticsService(
     }
 
     /// <summary>Возвращает тренировки в указанном зале за текущий месяц</summary>
-    public IList<PersonalTrainingSessionDto> GetSessionsForCurrentMonthInSelectedHall(string hallName)
+    public async Task<IList<PersonalTrainingSessionDto>> GetSessionsForCurrentMonthInSelectedHall(string hallName)
     {
         logger.LogInformation("Аналитика: занятия текущего месяца в зале '{Hall}'", hallName);
-        var allSessions = sessionRepo.GetAll();
-
-        if (!allSessions.Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase)))
+        if (!await sessionRepo.HallExists(hallName))
         {
             throw new ArgumentException($"Зал '{hallName}' не зарегистрирован в системе.");
         }
-
         var now = DateTime.Today;
-        return allSessions
-            .Where(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) &&
-                        s.DateTime.Year == now.Year &&
-                        s.DateTime.Month == now.Month)
+        var monthStart = new DateTime(now.Year, now.Month, 1);
+        var nextMonthStart = monthStart.AddMonths(1);
+        var sessions = await sessionRepo.GetByHallAndPeriod(hallName, monthStart, nextMonthStart);
+        return sessions
             .Select(s => new PersonalTrainingSessionDto(
                 s.Id, s.Member.Id, s.Trainer.Id, s.DateTime, s.HallName, s.IsTrial))
             .ToList();
     }
 
     /// <summary>Возвращает топ-5 самых популярных тренеров по количеству тренировок</summary>
-    public IList<TrainerDto> GetTopFivePopularTrainers()
+    public async Task<IList<TrainerDto>> GetTopFivePopularTrainers()
     {
         logger.LogInformation("Аналитика: расчет топ-5 популярных тренеров");
-        var topIds = sessionRepo.GetAll()
-            .GroupBy(s => s.Trainer.Id)
-            .OrderByDescending(g => g.Count())
-            .Take(5)
-            .Select(g => g.Key)
-            .ToList();
-
-        var cacheTrainers = trainerRepo.GetAll();
+        var topIds = await sessionRepo.GetTopFiveTrainerIds();
+        var trainers = await trainerRepo.GetByIds(topIds);
         return topIds
-            .Select(id => cacheTrainers.First(t => t.Id == id))
+            .Select(id => trainers.First(t => t.Id == id))
             .Select(t => new TrainerDto(
                 t.Id, t.PassportNumber, t.LastName, t.FirstName, t.Patronymic,
                 t.Gender, t.DateOfBirth, t.Specialization.Id, t.WorkExperienceYears))

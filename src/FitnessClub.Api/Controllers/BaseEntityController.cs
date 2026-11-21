@@ -22,12 +22,12 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<IList<TModel>> GetAllItems()
+    public async Task<ActionResult<IList<TModel>>> GetAllItems()
     {
         try
         {
             loggerInstance.LogInformation("Запрос на получение всех записей сущности {ModelName}", typeof(TModel).Name);
-            var collection = appService.GetAll();
+            var collection = await appService.GetAll();
             return Ok(collection);
         }
         catch (Exception ex)
@@ -44,12 +44,12 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<TModel> GetItemById(TIdentifier id)
+    public async Task<ActionResult<TModel>> GetItemById(TIdentifier id)
     {
         try
         {
             loggerInstance.LogInformation("Запрос записи {ModelName} по идентификатору {Id}", typeof(TModel).Name, id);
-            var item = appService.Get(id);
+            var item = await appService.Get(id);
             if (item is null)
             {
                 loggerInstance.LogWarning("Запись {ModelName} с идентификатором {Id} не обнаружена", typeof(TModel).Name, id);
@@ -72,12 +72,12 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<TModel> CreateItem([FromBody] TDataDto payload)
+    public async Task<ActionResult<TModel>> CreateItem([FromBody] TDataDto payload)
     {
         try
         {
             loggerInstance.LogInformation("Создание новой записи для {ModelName}", typeof(TModel).Name);
-            var created = appService.Create(payload);
+            var created = await appService.Create(payload);
             return StatusCode(StatusCodes.Status201Created, created);
         }
         catch (KeyNotFoundException ex)
@@ -105,12 +105,12 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public ActionResult<TModel> UpdateItem([FromBody] TDataDto payload, TIdentifier id)
+    public async Task<ActionResult<TModel>> UpdateItem([FromBody] TDataDto payload, TIdentifier id)
     {
         try
         {
             loggerInstance.LogInformation("Обновление записи {ModelName} с идентификатором {Id}", typeof(TModel).Name, id);
-            var updated = appService.Update(payload, id);
+            var updated = await appService.Update(payload, id);
             return Ok(updated);
         }
         catch (KeyNotFoundException ex)
@@ -138,19 +138,23 @@ public abstract class BaseEntityController<TModel, TDataDto, TIdentifier>(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult DeleteItem(TIdentifier id)
+    public async Task<IActionResult> DeleteItem(TIdentifier id)
     {
         try
         {
             loggerInstance.LogInformation("Удаление записи {ModelName} с идентификатором {Id}", typeof(TModel).Name, id);
-            
-            var success = appService.Delete(id);
+            var existing = await appService.Get(id);
+            if (existing is null)
+            {
+                loggerInstance.LogWarning("Запись {ModelName} с ID {Id} не найдена для удаления", typeof(TModel).Name, id);
+                return NotFound();
+            }
+            var success = await appService.Delete(id);
             if (!success)
             {
                 loggerInstance.LogWarning("Невозможно удалить запись {ModelName} с ID {Id}", typeof(TModel).Name, id);
                 return Conflict();
             }
-            
             return NoContent();
         }
         catch (Exception ex)
