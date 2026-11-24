@@ -12,22 +12,28 @@ public class TrainingSessionEfRepository(FitnessClubDbContext context) : ITraini
     /// <summary>Получает тренировку по идентификатору</summary>
     public async Task<TrainingSession?> Get(int id)
     {
-        return await context.TrainingSessions.FirstOrDefaultAsync(s => s.Id == id);
+        return await context.TrainingSessions
+            .Include(s => s.Member)
+            .Include(s => s.Trainer)
+            .FirstOrDefaultAsync(s => s.Id == id);
     }
 
     /// <summary>Получает все тренировки</summary>
     public async Task<IReadOnlyList<TrainingSession>> GetAll()
     {
-        return await context.TrainingSessions.ToListAsync();
+        return await context.TrainingSessions
+            .Include(s => s.Member)
+            .Include(s => s.Trainer)
+            .ToListAsync();
     }
 
     /// <summary>Добавляет тренировку</summary>
     public async Task Add(TrainingSession entity)
     {
         var member = await context.Members.FindAsync(entity.Member.Id)
-            ?? throw new ArgumentException("Клиент не найден.");
+            ?? throw new KeyNotFoundException("Клиент не найден.");
         var trainer = await context.Trainers.FindAsync(entity.Trainer.Id)
-            ?? throw new ArgumentException("Тренер не найден.");
+            ?? throw new KeyNotFoundException("Тренер не найден.");
         entity.Member = member;
         entity.Trainer = trainer;
         context.TrainingSessions.Add(entity);
@@ -38,11 +44,11 @@ public class TrainingSessionEfRepository(FitnessClubDbContext context) : ITraini
     public async Task Update(TrainingSession entity)
     {
         var session = await context.TrainingSessions.FirstOrDefaultAsync(s => s.Id == entity.Id)
-            ?? throw new ArgumentException("Тренировка не найдена.");
+            ?? throw new KeyNotFoundException("Тренировка не найдена.");
         var member = await context.Members.FindAsync(entity.Member.Id)
-            ?? throw new ArgumentException("Клиент не найден.");
+            ?? throw new KeyNotFoundException("Клиент не найден.");
         var trainer = await context.Trainers.FindAsync(entity.Trainer.Id)
-            ?? throw new ArgumentException("Тренер не найден.");
+            ?? throw new KeyNotFoundException("Тренер не найден.");
         context.Entry(session).CurrentValues.SetValues(entity);
         session.Member = member;
         session.Trainer = trainer;
@@ -75,6 +81,8 @@ public class TrainingSessionEfRepository(FitnessClubDbContext context) : ITraini
     public async Task<IReadOnlyList<TrainingSession>> GetByMember(int memberId)
     {
         return await context.TrainingSessions
+            .Include(s => s.Member)
+            .Include(s => s.Trainer)
             .AsNoTracking()
             .Where(s => s.Member.Id == memberId)
             .ToListAsync();
@@ -84,6 +92,8 @@ public class TrainingSessionEfRepository(FitnessClubDbContext context) : ITraini
     public async Task<IReadOnlyList<TrainingSession>> GetByTrainer(int trainerId)
     {
         return await context.TrainingSessions
+            .Include(s => s.Member)
+            .Include(s => s.Trainer)
             .AsNoTracking()
             .Where(s => s.Trainer.Id == trainerId)
             .ToListAsync();
@@ -105,6 +115,8 @@ public class TrainingSessionEfRepository(FitnessClubDbContext context) : ITraini
     public async Task<IReadOnlyList<TrainingSession>> GetByHallAndPeriod(string hallName, DateTime start, DateTime end)
     {
         return await context.TrainingSessions
+            .Include(s => s.Member)
+            .Include(s => s.Trainer)
             .AsNoTracking()
             .Where(s => s.HallName == hallName && s.DateTime >= start && s.DateTime < end)
             .ToListAsync();

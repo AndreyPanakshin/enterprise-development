@@ -12,20 +12,24 @@ public class TrainerEfRepository(FitnessClubDbContext context) : ITrainerReposit
     /// <summary>Получает тренера по идентификатору</summary>
     public async Task<Trainer?> Get(int id)
     {
-        return await context.Trainers.FirstOrDefaultAsync(t => t.Id == id);
+        return await context.Trainers
+            .Include(t => t.Specialization)
+            .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     /// <summary>Получает всех тренеров</summary>
     public async Task<IReadOnlyList<Trainer>> GetAll()
     {
-        return await context.Trainers.ToListAsync();
+        return await context.Trainers
+            .Include(t => t.Specialization)
+            .ToListAsync();
     }
 
     /// <summary>Добавляет тренера</summary>
     public async Task Add(Trainer entity)
     {
         var specialization = await context.Specializations.FindAsync(entity.Specialization.Id)
-            ?? throw new ArgumentException("Специализация не найдена.");
+            ?? throw new KeyNotFoundException("Специализация не найдена.");
         entity.Specialization = specialization;
         context.Trainers.Add(entity);
         await context.SaveChangesAsync();
@@ -35,9 +39,9 @@ public class TrainerEfRepository(FitnessClubDbContext context) : ITrainerReposit
     public async Task Update(Trainer entity)
     {
         var trainer = await context.Trainers.FirstOrDefaultAsync(t => t.Id == entity.Id)
-            ?? throw new ArgumentException("Тренер не найден.");
+            ?? throw new KeyNotFoundException("Тренер не найден.");
         var specialization = await context.Specializations.FindAsync(entity.Specialization.Id)
-            ?? throw new ArgumentException("Специализация не найдена.");
+            ?? throw new KeyNotFoundException("Специализация не найдена.");
         context.Entry(trainer).CurrentValues.SetValues(entity);
         trainer.Specialization = specialization;
         await context.SaveChangesAsync();
@@ -63,6 +67,7 @@ public class TrainerEfRepository(FitnessClubDbContext context) : ITrainerReposit
     public async Task<IReadOnlyList<Trainer>> GetBySpecialization(int specializationId)
     {
         return await context.Trainers
+            .Include(t => t.Specialization)
             .AsNoTracking()
             .Where(t => t.Specialization.Id == specializationId)
             .ToListAsync();
@@ -72,6 +77,7 @@ public class TrainerEfRepository(FitnessClubDbContext context) : ITrainerReposit
     public async Task<IReadOnlyList<Trainer>> GetWithMinExperience(int minYears)
     {
         return await context.Trainers
+            .Include(t => t.Specialization)
             .AsNoTracking()
             .Where(t => t.WorkExperienceYears >= minYears)
             .ToListAsync();
@@ -81,6 +87,7 @@ public class TrainerEfRepository(FitnessClubDbContext context) : ITrainerReposit
     public async Task<IReadOnlyList<Trainer>> GetByIds(IReadOnlyCollection<int> ids)
     {
         return await context.Trainers
+            .Include(t => t.Specialization)
             .AsNoTracking()
             .Where(t => ids.Contains(t.Id))
             .ToListAsync();
