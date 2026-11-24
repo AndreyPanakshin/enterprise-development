@@ -45,26 +45,35 @@ public class TrainerRepository : ITrainerRepository
     }
 
     /// <summary>Проверяет наличие тренеров указанной специализации</summary>
-    public async Task<bool> HasTrainersForSpecialization(int specializationId)
+    public Task<bool> HasTrainersForSpecialization(int specializationId)
     {
-        return (await GetAll()).Any(t => t.Specialization.Id == specializationId);
+        return Task.FromResult(_trainers.AsQueryable().Any(t => t.Specialization.Id == specializationId));
     }
 
     /// <summary>Получает тренеров указанной специализации</summary>
-    public async Task<IReadOnlyList<Trainer>> GetBySpecialization(int specializationId)
+    public Task<IReadOnlyList<Trainer>> GetBySpecialization(int specializationId)
     {
-        return (await GetAll()).Where(t => t.Specialization.Id == specializationId).ToList();
+        IReadOnlyList<Trainer> result = _trainers.AsQueryable()
+            .Where(t => t.Specialization.Id == specializationId)
+            .ToList();
+        return Task.FromResult(result);
     }
 
     /// <summary>Получает тренеров со стажем не менее указанного</summary>
-    public async Task<IReadOnlyList<Trainer>> GetWithMinExperience(int minYears)
+    public Task<IReadOnlyList<Trainer>> GetWithMinExperience(int minYears)
     {
-        return (await GetAll()).Where(t => t.WorkExperienceYears >= minYears).ToList();
+        IReadOnlyList<Trainer> result = _trainers.AsQueryable()
+            .Where(t => t.WorkExperienceYears >= minYears)
+            .ToList();
+        return Task.FromResult(result);
     }
 
     /// <summary>Получает тренеров по списку идентификаторов</summary>
-    public async Task<IReadOnlyList<Trainer>> GetByIds(IReadOnlyCollection<int> ids)
+    public Task<IReadOnlyList<Trainer>> GetByIds(IReadOnlyCollection<int> ids)
     {
-        return (await GetAll()).Where(t => ids.Contains(t.Id)).ToList();
+        IReadOnlyList<Trainer> result = _trainers.AsQueryable()
+            .Where(t => ids.Contains(t.Id))
+            .ToList();
+        return Task.FromResult(result);
     }
 }

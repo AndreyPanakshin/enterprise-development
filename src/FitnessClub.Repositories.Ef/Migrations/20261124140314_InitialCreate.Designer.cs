@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitnessClub.Repositories.Ef.Migrations
 {
     [DbContext(typeof(FitnessClubDbContext))]
-    [Migration("20261121093604_InitialCreate")]
+    [Migration("20261124140314_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -29,150 +29,185 @@ namespace FitnessClub.Repositories.Ef.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("first_name");
 
                     b.Property<int>("Gender")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("gender");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("last_name");
 
                     b.Property<DateOnly>("MembershipEndDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("membership_end_date");
 
                     b.Property<DateOnly>("MembershipStartDate")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("membership_start_date");
 
                     b.Property<string>("PassportNumber")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("passport_number");
 
                     b.Property<string>("Patronymic")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("patronymic");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("phone_number");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_members");
 
-                    b.ToTable("Members");
+                    b.ToTable("members");
                 });
 
             modelBuilder.Entity("FitnessClub.Domain.Entities.Specialization", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_specializations");
 
-                    b.ToTable("Specializations");
+                    b.ToTable("specializations");
                 });
 
             modelBuilder.Entity("FitnessClub.Domain.Entities.Trainer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("first_name");
 
                     b.Property<int>("Gender")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("gender");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("last_name");
 
                     b.Property<string>("PassportNumber")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("passport_number");
 
                     b.Property<string>("Patronymic")
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("patronymic");
 
                     b.Property<int>("SpecializationId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("specialization_id");
 
                     b.Property<int>("WorkExperienceYears")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("work_experience_years");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_trainers");
 
-                    b.HasIndex("SpecializationId");
+                    b.HasIndex("SpecializationId")
+                        .HasDatabaseName("ix_trainers_specialization_id");
 
-                    b.ToTable("Trainers");
+                    b.ToTable("trainers");
                 });
 
             modelBuilder.Entity("FitnessClub.Domain.Entities.TrainingSession", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_time");
 
                     b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time(6)");
+                        .HasColumnType("time(6)")
+                        .HasColumnName("duration");
 
                     b.Property<string>("HallName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("hall_name");
 
                     b.Property<bool>("IsTrial")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("is_trial");
 
                     b.Property<int>("MemberId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("member_id");
 
                     b.Property<int>("TrainerId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("trainer_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_training_sessions");
 
-                    b.HasIndex("MemberId");
+                    b.HasIndex("MemberId")
+                        .HasDatabaseName("ix_training_sessions_member_id");
 
-                    b.HasIndex("TrainerId");
+                    b.HasIndex("TrainerId")
+                        .HasDatabaseName("ix_training_sessions_trainer_id");
 
-                    b.ToTable("TrainingSessions");
+                    b.ToTable("training_sessions");
                 });
 
             modelBuilder.Entity("FitnessClub.Domain.Entities.Trainer", b =>
@@ -181,7 +216,8 @@ namespace FitnessClub.Repositories.Ef.Migrations
                         .WithMany()
                         .HasForeignKey("SpecializationId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_trainers_specializations");
 
                     b.Navigation("Specialization");
                 });
@@ -192,13 +228,15 @@ namespace FitnessClub.Repositories.Ef.Migrations
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_training_sessions_members");
 
                     b.HasOne("FitnessClub.Domain.Entities.Trainer", "Trainer")
                         .WithMany()
                         .HasForeignKey("TrainerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_training_sessions_trainers");
 
                     b.Navigation("Member");
 

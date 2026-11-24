@@ -45,13 +45,14 @@ public class MemberRepository : IMemberRepository
     }
 
     /// <summary>Получает клиентов с просроченными абонементами, отсортированных по ФИО</summary>
-    public async Task<IReadOnlyList<Member>> GetExpiredSubscriptions(DateOnly today)
+    public Task<IReadOnlyList<Member>> GetExpiredSubscriptions(DateOnly today)
     {
-        return (await GetAll())
+        IReadOnlyList<Member> result = _members.AsQueryable()
             .Where(m => m.IsMembershipExpired(today))
             .OrderBy(m => m.LastName)
             .ThenBy(m => m.FirstName)
             .ThenBy(m => m.Patronymic)
             .ToList();
+        return Task.FromResult(result);
     }
 }

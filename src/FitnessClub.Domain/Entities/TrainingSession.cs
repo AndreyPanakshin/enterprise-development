@@ -1,13 +1,17 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace FitnessClub.Domain.Entities;
 
 /// <summary>
 /// Запись клиента на тренировку
 /// </summary>
+[Table("training_sessions")]
 public class TrainingSession
 {
     /// <summary>
     /// Идентификатор занятия
     /// </summary>
+    [Column("id")]
     public required int Id { get; set; }
 
     /// <summary>
@@ -21,22 +25,26 @@ public class TrainingSession
     public required Trainer Trainer { get; set; }
 
     /// <summary>
-    /// Дата и время тренировки 
+    /// Дата и время тренировки
     /// </summary>
+    [Column("date_time")]
     public required DateTime DateTime { get; set; }
 
     /// <summary>
     /// Продолжительность тренировки
     /// </summary>
+    [Column("duration")]
     public TimeSpan Duration { get; set; } = TimeSpan.FromHours(1);
 
     /// <summary>
     /// Название зала
     /// </summary>
+    [Column("hall_name")]
     public required string HallName { get; set; }
 
     /// <summary>
     /// Признак пробного занятия
     /// </summary>
+    [Column("is_trial")]
     public required bool IsTrial { get; set; }
 }

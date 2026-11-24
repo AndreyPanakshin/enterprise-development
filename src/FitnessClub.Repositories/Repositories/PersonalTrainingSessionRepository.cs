@@ -45,60 +45,69 @@ public class TrainingSessionRepository : ITrainingSessionRepository
     }
 
     /// <summary>Проверяет наличие тренировок у клиента</summary>
-    public async Task<bool> HasSessionsForMember(int memberId)
+    public Task<bool> HasSessionsForMember(int memberId)
     {
-        return (await GetAll()).Any(s => s.Member.Id == memberId);
+        return Task.FromResult(_sessions.AsQueryable().Any(s => s.Member.Id == memberId));
     }
 
     /// <summary>Проверяет наличие тренировок у тренера</summary>
-    public async Task<bool> HasSessionsForTrainer(int trainerId)
+    public Task<bool> HasSessionsForTrainer(int trainerId)
     {
-        return (await GetAll()).Any(s => s.Trainer.Id == trainerId);
+        return Task.FromResult(_sessions.AsQueryable().Any(s => s.Trainer.Id == trainerId));
     }
 
     /// <summary>Получает тренировки клиента</summary>
-    public async Task<IReadOnlyList<TrainingSession>> GetByMember(int memberId)
+    public Task<IReadOnlyList<TrainingSession>> GetByMember(int memberId)
     {
-        return (await GetAll()).Where(s => s.Member.Id == memberId).ToList();
+        IReadOnlyList<TrainingSession> result = _sessions.AsQueryable()
+            .Where(s => s.Member.Id == memberId)
+            .ToList();
+        return Task.FromResult(result);
     }
 
     /// <summary>Получает тренировки тренера</summary>
-    public async Task<IReadOnlyList<TrainingSession>> GetByTrainer(int trainerId)
+    public Task<IReadOnlyList<TrainingSession>> GetByTrainer(int trainerId)
     {
-        return (await GetAll()).Where(s => s.Trainer.Id == trainerId).ToList();
+        IReadOnlyList<TrainingSession> result = _sessions.AsQueryable()
+            .Where(s => s.Trainer.Id == trainerId)
+            .ToList();
+        return Task.FromResult(result);
     }
 
     /// <summary>Проверяет, зарегистрирован ли зал в системе</summary>
-    public async Task<bool> HallExists(string hallName)
+    public Task<bool> HallExists(string hallName)
     {
-        return (await GetAll()).Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(_sessions.AsQueryable()
+            .Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>Проверяет занятость зала в указанное время</summary>
-    public async Task<bool> HasSessionInHall(string hallName, DateTime checkTime)
+    public Task<bool> HasSessionInHall(string hallName, DateTime checkTime)
     {
-        return (await GetAll()).Any(s =>
-            s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) && s.DateTime == checkTime);
+        return Task.FromResult(_sessions.AsQueryable()
+            .Any(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase) && s.DateTime == checkTime));
     }
 
     /// <summary>Получает тренировки зала за указанный период</summary>
-    public async Task<IReadOnlyList<TrainingSession>> GetByHallAndPeriod(string hallName, DateTime start, DateTime end)
+    public Task<IReadOnlyList<TrainingSession>> GetByHallAndPeriod(string hallName, DateTime start, DateTime end)
     {
-        return (await GetAll())
+        IReadOnlyList<TrainingSession> result = _sessions.AsQueryable()
             .Where(s => s.HallName.Equals(hallName, StringComparison.OrdinalIgnoreCase)
                         && s.DateTime >= start && s.DateTime < end)
             .ToList();
+        return Task.FromResult(result);
     }
 
     /// <summary>Получает идентификаторы пяти самых популярных тренеров</summary>
-    public async Task<IReadOnlyList<int>> GetTopFiveTrainerIds()
+    public Task<IReadOnlyList<int>> GetTopFiveTrainerIds()
     {
-        return (await GetAll())
+        IReadOnlyList<int> result = _sessions.AsQueryable()
             .GroupBy(s => s.Trainer.Id)
             .OrderByDescending(g => g.Count())
             .ThenBy(g => g.Key)
             .Take(5)
             .Select(g => g.Key)
             .ToList();
+        return Task.FromResult(result);
     }
 }
